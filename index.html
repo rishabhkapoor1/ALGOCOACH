@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALGOCOACH - Your DSA Instructor</title>
+    
+    <!-- For Markdown Rendering & Syntax Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-dark.css">
+
+    <style>
+        /* --- Global Styles & Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --bg-primary: #1e1e2e;
+            --bg-secondary: #27293d;
+            --bg-tertiary: #3b3e5a;
+            --text-primary: #cdd6f4;
+            --text-secondary: #a6adc8;
+            --accent-primary: #89b4fa;
+            --accent-secondary: #f38ba8;
+            --accent-user: #a6e3a1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 1rem;
+        }
+
+        /* --- Chat Container --- */
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 95vh;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        /* --- Header --- */
+        .chat-header {
+            background-color: var(--bg-tertiary);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--bg-primary);
+            color: var(--accent-primary);
+        }
+
+        .chat-header span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* --- Messages Area --- */
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        /* --- Individual Messages --- */
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1.25rem;
+            border-radius: 18px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .message.user {
+            background-color: var(--accent-user);
+            color: #111;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+        }
+
+        .message.ai {
+            background-color: var(--bg-tertiary);
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .message .author {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .message.user .author { color: #333; }
+        .message.ai .author { color: var(--accent-primary); }
+
+        /* --- Code Blocks inside Messages --- */
+        .message pre {
+            background-color: #11111b; /* A darker shade for code */
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+        }
+        .message code {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .message p code {
+            background-color: #11111b;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: var(--accent-secondary);
+        }
+        
+        /* --- Loading Animation --- */
+        .loading-dots {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .loading-dots span {
+            width: 10px;
+            height: 10px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* --- Input Form --- */
+        .chat-input-form {
+            display: flex;
+            padding: 1rem;
+            background-color: var(--bg-tertiary);
+            border-top: 1px solid var(--bg-primary);
+        }
+
+        #userInput {
+            flex-grow: 1;
+            border: none;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-right: 0.75rem;
+        }
+
+        #userInput:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-primary);
+        }
+
+        #sendBtn {
+            border: none;
+            background-color: var(--accent-primary);
+            color: var(--bg-primary);
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #sendBtn:hover {
+            background-color: #a6e3a1;
+        }
+
+        #sendBtn:disabled {
+            background-color: var(--bg-tertiary);
+            cursor: not-allowed;
+        }
+        
+        /* --- API Key Warning --- */
+        #apiKeyWarning {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: #f38ba8;
+            color: #111;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            ALGOCOACH
+            <span>Your Personal Data Structures & Algorithms Instructor</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be injected here by JavaScript -->
+        </div>
+        <form class="chat-input-form" id="chatForm">
+            <input type="text" id="userInput" placeholder="Ask about arrays, Big O, sorting..." autocomplete="off">
+            <button type="submit" id="sendBtn">Ask</button>
+        </form>
+    </div>
+
+    <!-- This warning appears if the API key is missing -->
+    <div id="apiKeyWarning" style="display: none;">
+        <strong>Warning:</strong> API key is missing! Please set it in the script.
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. CONFIGURATION ---
+            // ⚠️ IMPORTANT: Replace with your actual Gemini API key
+            // For production, use a backend proxy to keep your key secret.
+            const GEMINI_API_KEY = "AIzaSyCnU_NIGSGzH6N_L4zFxfPnyulpotU7rn4";
+            
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const SYSTEM_INSTRUCTION = `You are ALGOCOACH, an expert instructor in Data Structures and Algorithms (DSA). Your personality is encouraging but focused.
+            - You ONLY answer questions related to DSA.
+            - Your explanations must be clear, concise, and easy to understand for beginners.
+            - Use analogies and simple examples whenever possible.
+            - When providing code, use Markdown with language identifiers (e.g., \`\`\`javascript).
+            - If a user asks a question not related to DSA (like "how are you?", "what's the weather?"), you must firmly but creatively redirect them. Examples:
+              - "My circuits are tuned for algorithms, not small talk. Let's talk Big O!"
+              - "That's outside my computational scope. Try asking about binary search trees."
+              - "Interesting query, but my expertise is in sorting, not sports. What DSA topic is on your mind?"
+            - Do NOT just say "Ask DSA questions only". Be a character.`;
+
+            // --- 2. DOM ELEMENT SELECTION ---
+            const chatForm = document.getElementById('chatForm');
+            const userInput = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const chatMessages = document.getElementById('chatMessages');
+            const apiKeyWarning = document.getElementById('apiKeyWarning');
+
+            // --- 3. INITIALIZATION ---
+            
+            // Configure Marked.js to use Highlight.js for code blocks
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-',
+                gfm: true,
+                breaks: true,
+            });
+
+            // Show initial welcome message
+            addMessageToChat(
+                'ai', 
+                'ALGOCOACH', 
+                "Hello! I'm ALGOCOACH. I'm ready to help you with any Data Structures and Algorithms questions. What's our first topic?"
+            );
+            
+            // Check for API key and show a persistent warning if it's missing
+            // if (GEMINI_API_KEY === "AIzaSyCnU_NIGSGzH6N_L4zFxfPnyulpotU7rn4") {
+            //     apiKeyWarning.style.display = 'block';
+            //     sendBtn.disabled = true;
+            //     userInput.disabled = true;
+            //     userInput.placeholder = "API Key missing in script!";
+            // }
+
+            // --- 4. EVENT LISTENERS ---
+            chatForm.addEventListener('submit', handleFormSubmit);
+
+            // --- 5. FUNCTIONS ---
+
+            async function handleFormSubmit(event) {
+                event.preventDefault();
+                const userQuery = userInput.value.trim();
+                
+                if (!userQuery) return;
+
+                // Add user's message to the chat
+                addMessageToChat('user', 'You', userQuery);
+                userInput.value = '';
+
+                // Show loading indicator and fetch AI response
+                const loadingMessageId = showLoadingIndicator();
+                try {
+                    const aiResponse = await getAIResponse(userQuery);
+                    updateMessageInChat(loadingMessageId, 'ai', 'ALGOCOACH', aiResponse);
+                } catch (error) {
+                    console.error("Error fetching AI response:", error);
+                    const errorMessage = `Sorry, something went wrong. My circuits might be overloaded. Please check the console for details or try again later. (Error: ${error.message})`;
+                    updateMessageInChat(loadingMessageId, 'ai', 'ALGOCOACH', errorMessage);
+                }
+            }
+
+            async function getAIResponse(prompt) {
+                sendBtn.disabled = true;
+                
+                const requestBody = {
+                  "systemInstruction": {
+                    "parts": { "text": SYSTEM_INSTRUCTION }
+                  },
+                  "contents": [{
+                    "parts": [{ "text": prompt }]
+                  }]
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                sendBtn.disabled = false;
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || "API request failed");
+                }
+
+                const data = await response.json();
+                
+                // Extract the text from the response
+                const text = data.candidates[0]?.content?.parts[0]?.text;
+                if (!text) {
+                    throw new Error("Received an empty response from the API.");
+                }
+
+                return text;
+            }
+
+            function addMessageToChat(sender, author, text) {
+                const messageId = `msg-${Date.now()}`;
+                const messageElement = createMessageElement(messageId, sender, author, text);
+                chatMessages.appendChild(messageElement);
+                scrollToBottom();
+                return messageId;
+            }
+            
+            function updateMessageInChat(messageId, sender, author, newText) {
+                let messageElement = document.getElementById(messageId);
+                
+                if (messageElement) {
+                    // Re-create the content to ensure proper rendering
+                    const authorElement = document.createElement('div');
+                    authorElement.className = 'author';
+                    authorElement.textContent = author;
+
+                    const contentElement = document.createElement('div');
+                    contentElement.className = 'content';
+                    // Use marked to parse markdown content
+                    contentElement.innerHTML = marked.parse(newText);
+                    
+                    messageElement.innerHTML = ''; // Clear old content (loading dots)
+                    messageElement.appendChild(authorElement);
+                    messageElement.appendChild(contentElement);
+                }
+                scrollToBottom();
+            }
+
+            function showLoadingIndicator() {
+                const loadingHtml = `
+                    <div class="author">ALGOCOACH</div>
+                    <div class="content">
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>`;
+                const messageId = `msg-${Date.now()}`;
+                const messageElement = createMessageElement(messageId, 'ai', '', ''); // author/text are placeholders
+                messageElement.innerHTML = loadingHtml;
+                
+                chatMessages.appendChild(messageElement);
+                scrollToBottom();
+                return messageId;
+            }
+            
+            function createMessageElement(id, sender, author, text) {
+                const messageElement = document.createElement('div');
+                messageElement.id = id;
+                messageElement.className = `message ${sender}`;
+
+                const authorElement = document.createElement('div');
+                authorElement.className = 'author';
+                authorElement.textContent = author;
+
+                const contentElement = document.createElement('div');
+                contentElement.className = 'content';
+                
+                // Render user text as plain text, but AI text as Markdown
+                if (sender === 'user') {
+                    contentElement.textContent = text;
+                } else {
+                    contentElement.innerHTML = marked.parse(text);
+                }
+                
+                messageElement.appendChild(authorElement);
+                messageElement.appendChild(contentElement);
+                
+                return messageElement;
+            }
+
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
