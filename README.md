@@ -21,7 +21,8 @@ ALGOCOACH uses a system prompt to simulate a DSA instructor. When you input a qu
 
 ## 📸 Screenshot
 
-![ALGOCOACH Screenshot](https://drive.google.com/file/d/17h-eSULEhTK3XyvF2DbAdr7xV4pdw69J/view?usp=drive_link) 
+![ALGOCOACH Screenshot](https://drive.google.com/uc?export=view&id=17h-eSULEhTK3XyvF2DbAdr7xV4pdw69J)
+ 
 
 ## 🔑 Setup Instructions
 
